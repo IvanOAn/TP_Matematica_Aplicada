@@ -1,0 +1,474 @@
+# PROYECTO: MerkleViz
+## Aplicación interactiva para la verificación de integridad mediante Árboles de Merkle
+
+### 1. Rol y objetivo
+
+Actuá como un desarrollador senior especializado en React, TypeScript, visualización de datos, criptografía y diseño de interfaces educativas.
+
+Tu tarea es desarrollar una aplicación web completa llamada **MerkleViz**, destinada a demostrar visual e interactivamente cómo funcionan los Árboles de Merkle para verificar la integridad de archivos.
+
+La aplicación debe combinar:
+- Rigor matemático y criptográfico.
+- Interfaz moderna, intuitiva y visualmente atractiva.
+- Visualización gráfica interactiva.
+- Explicaciones didácticas de los cálculos.
+- Simulación controlada de alteraciones en archivos.
+- Pruebas automatizadas y documentación académica.
+
+**IMPORTANTE:** No desarrolles únicamente una maqueta. Implementá una aplicación real, con operaciones criptográficas funcionales, resultados reproducibles y código organizado.
+
+Toda la interfaz y la documentación deben estar en español.
+
+---
+
+### 2. Tecnologías obligatorias
+
+Utilizá las siguientes tecnologías:
+
+- React con TypeScript.
+- Vite como entorno de desarrollo.
+- Tailwind CSS para estilos.
+- React Flow (`@xyflow/react`) para visualizar el árbol.
+- Web Crypto API para calcular SHA-256.
+- Lucide React para iconografía.
+- Vitest para pruebas unitarias.
+
+La aplicación debe funcionar localmente en el navegador.
+
+No es necesario implementar un backend, ya que el procesamiento de los archivos debe realizarse en el navegador para preservar la privacidad.
+
+---
+
+### 3. Identidad visual y experiencia de usuario
+
+Diseñá una interfaz profesional, moderna y académica.
+
+**Identidad visual:**
+- Nombre: MerkleViz.
+- Estilo: dashboard tecnológico y educativo.
+- Colores principales: azul oscuro, azul eléctrico y tonos neutros.
+- Verde para verificaciones exitosas.
+- Rojo para alteraciones detectadas.
+- Amarillo para advertencias.
+- Tipografía moderna y legible.
+- Tarjetas con bordes redondeados y sombras sutiles.
+- Diseño responsivo para computadoras y tablets.
+- Modo claro y oscuro.
+
+La interfaz debe transmitir claridad, seguridad y precisión matemática.
+
+Evitá elementos decorativos innecesarios.
+
+Priorizá la legibilidad y la visualización de los datos.
+
+---
+
+### 4. Pantalla principal
+
+La pantalla principal debe incluir:
+
+**A. Encabezado**
+- Logotipo de MerkleViz.
+- Nombre del sistema.
+- Subtítulo: "Verificación de Integridad mediante Árboles de Merkle".
+- Indicador del algoritmo SHA-256.
+- Control para cambiar entre modo claro y oscuro.
+
+**B. Panel de archivos**
+- Área para arrastrar y soltar archivos.
+- Botón para seleccionar múltiples archivos.
+- Lista de archivos cargados.
+- Nombre y tamaño de cada archivo.
+- Hash SHA-256 de cada hoja.
+- Botón para eliminar archivos.
+- Validaciones y mensajes de error.
+- Indicador de procesamiento.
+
+**C. Panel del árbol**
+- Grafo interactivo de Merkle.
+- Nodos hoja.
+- Nodos intermedios.
+- Nodo raíz.
+- Conexiones entre los nodos.
+- Zoom y desplazamiento.
+- Posibilidad de seleccionar un nodo.
+- Vista adaptable a distintos números de archivos.
+- Tooltip o panel de detalle de cada hash.
+
+**D. Panel de integridad**
+- Merkle Root original.
+- Merkle Root actual.
+- Estado de verificación.
+- Cantidad de archivos procesados.
+- Número de nodos.
+- Altura del árbol.
+- Cantidad de hashes modificados.
+
+**E. Panel educativo**
+- Explicación de la operación matemática seleccionada.
+- Datos de entrada.
+- Hashes utilizados.
+- Fórmula aplicada.
+- Resultado obtenido.
+- Descripción del significado del cálculo.
+
+---
+
+### 5. Motor matemático y criptográfico
+
+Implementá un motor independiente de la interfaz gráfica.
+
+Utilizá SHA-256 mediante Web Crypto API.
+
+Para evitar ambigüedades criptográficas, aplicá separación de dominios entre hojas y nodos internos.
+
+Definiciones:
+
+**Hash de hoja:**
+
+H_leaf = SHA256(0x00 || bytes_del_archivo)
+
+**Hash de nodo interno:**
+
+H_parent = SHA256(0x01 || hash_izquierdo || hash_derecho)
+
+Donde `||` representa concatenación de bytes, no concatenación de cadenas hexadecimales.
+
+Los hashes deben almacenarse como bytes y representarse en hexadecimal únicamente para su visualización.
+
+Reglas de construcción:
+
+1. Cada archivo cargado representa una hoja.
+2. El orden de los archivos debe conservarse.
+3. Cada hoja contiene el hash del contenido binario del archivo.
+4. Los nodos intermedios contienen el hash de sus dos hijos.
+5. La raíz representa criptográficamente el conjunto completo.
+6. Si un nivel contiene una cantidad impar de nodos mayor que uno, duplicar el último hash para formar la última pareja.
+7. Con una sola hoja, la raíz es el hash de esa hoja.
+8. No construir un árbol si no hay archivos.
+9. Documentar explícitamente la convención adoptada para niveles impares.
+
+Implementá funciones reutilizables para:
+
+- Calcular hashes de hojas.
+- Calcular hashes de nodos internos.
+- Construir el árbol.
+- Obtener sus niveles.
+- Obtener la raíz.
+- Comparar dos árboles.
+- Identificar nodos modificados.
+- Generar información para el grafo.
+
+Usá identificadores estables basados en la posición del nodo en cada nivel.
+
+No utilices hashes como identificadores únicos de nodos, porque dos archivos idénticos pueden tener el mismo hash.
+
+---
+
+### 6. Visualización interactiva con React Flow
+
+Construí un grafo que represente la estructura real del Árbol de Merkle.
+
+**Representación visual:**
+
+- Nodo raíz ubicado en la parte superior.
+- Nodos intermedios en el centro.
+- Hojas en la parte inferior.
+- Conexiones visibles entre padres e hijos.
+- Distribución jerárquica automática.
+
+Colores:
+
+- Azul: nodo sin modificaciones.
+- Rojo: nodo cuyo hash cambió.
+- Verde: verificación exitosa.
+- Amarillo: nodo seleccionado.
+
+Cada nodo debe mostrar:
+- Tipo de nodo.
+- Identificador.
+- Hash abreviado.
+- Indicador visual de su estado.
+
+Al seleccionar un nodo, mostrar:
+- Hash completo.
+- Nivel y posición.
+- Hijos asociados, cuando corresponda.
+- Operación matemática utilizada.
+- Hash original y actual, si hubo modificaciones.
+
+Agregar controles para:
+- Acercar.
+- Alejar.
+- Ajustar la vista.
+- Centrar el árbol.
+- Reiniciar la visualización.
+
+---
+
+### 7. Simulación de alteración de archivos
+
+Esta es la funcionalidad más importante del proyecto.
+
+Implementá un módulo interactivo denominado **Laboratorio de Integridad**.
+
+Flujo de funcionamiento:
+
+1. El usuario carga varios archivos.
+2. El sistema calcula sus hashes.
+3. Construye el Árbol de Merkle.
+4. Guarda la raíz original.
+5. El usuario selecciona uno de los archivos.
+6. El usuario elige una posición de byte válida.
+7. La aplicación modifica un bit de ese byte mediante una operación XOR con una máscara de un solo bit.
+8. El archivo original no debe modificarse.
+9. El sistema recalcula el hash de la hoja afectada.
+10. Recalcula los nodos ascendentes hasta llegar a la raíz.
+11. Compara la raíz original con la nueva.
+12. Resalta visualmente los nodos afectados.
+
+**Animación:**
+
+La aplicación debe mostrar la propagación del cambio paso a paso:
+
+- Paso 1: byte modificado.
+- Paso 2: hash de hoja modificado.
+- Paso 3: hash del nodo padre modificado.
+- Paso 4: propagación por niveles.
+- Paso 5: raíz modificada.
+- Paso 6: resultado de verificación.
+
+Agregar botones:
+- Iniciar simulación.
+- Siguiente paso.
+- Paso anterior.
+- Reproducir animación.
+- Reiniciar simulación.
+- Restaurar estado original.
+
+Los nodos afectados deben destacarse visualmente.
+
+No simular resultados ficticios: todos los hashes deben surgir de operaciones SHA-256 reales.
+
+Permitir comparar los hashes originales y modificados.
+
+Para archivos vacíos, ofrecer una explicación de por qué no existe una posición de byte modificable y permitir seleccionar otro archivo.
+
+---
+
+### 8. Dashboard matemático
+
+Agregar una sección denominada **Explorador Matemático**.
+
+Debe explicar paso a paso cómo se obtiene la raíz.
+
+Mostrar:
+
+1. Datos originales.
+2. Conversión a bytes.
+3. Aplicación de SHA-256.
+4. Obtención de hojas.
+5. Concatenación de hashes hijos.
+6. Cálculo de nodos intermedios.
+7. Obtención de Merkle Root.
+
+Incluir fórmulas matemáticas con buena presentación tipográfica.
+
+Mostrar la diferencia entre:
+- Hash de archivo.
+- Hash de nodo interno.
+- Raíz de Merkle.
+- Verificación de integridad.
+
+Explicar que una raíz diferente demuestra que el contenido o la estructura procesada no coincide con el estado original de referencia.
+
+Aclarar que la raíz debe provenir de una fuente confiable para proporcionar garantías útiles de integridad.
+
+---
+
+### 9. Verificación y pruebas de Merkle
+
+Implementá una funcionalidad adicional para generar pruebas de inclusión.
+
+El usuario debe poder seleccionar una hoja y generar su Merkle Proof.
+
+La prueba debe contener:
+- Hashes hermanos necesarios.
+- Posición izquierda o derecha de cada hash.
+- Raíz esperada.
+- Resultado de verificación.
+
+Implementar una función que reconstruya la raíz a partir de una hoja y su prueba.
+
+Mostrar visualmente qué nodos participan en la verificación.
+
+Explicar por qué la cantidad de hashes utilizados crece aproximadamente de forma logarítmica respecto del número de hojas en un árbol balanceado.
+
+---
+
+### 10. Manejo de errores
+
+La aplicación debe manejar correctamente:
+
+- Intento de construir un árbol sin archivos.
+- Archivos vacíos.
+- Archivos duplicados.
+- Árboles con un número impar de hojas.
+- Archivos demasiado grandes.
+- Índices de byte fuera de rango.
+- Errores durante la lectura de archivos.
+- Fallos del motor criptográfico.
+- Cambios en la lista de archivos durante una simulación.
+
+Proporcionar mensajes claros y amigables en español.
+
+No mostrar errores técnicos incomprensibles al usuario final.
+
+---
+
+### 11. Estructura sugerida del proyecto
+
+Organizá el código aproximadamente así:
+
+src/
+- components/
+  - FileUploader.tsx
+  - FileList.tsx
+  - MerkleTreeGraph.tsx
+  - MerkleNode.tsx
+  - IntegrityDashboard.tsx
+  - SimulationControls.tsx
+  - MathExplorer.tsx
+  - NodeDetails.tsx
+- core/
+  - hash.ts
+  - merkle.ts
+  - merkleProof.ts
+  - byteMutation.ts
+- hooks/
+  - useMerkleTree.ts
+  - useSimulation.ts
+- types/
+  - merkle.ts
+- utils/
+  - format.ts
+- App.tsx
+- main.tsx
+- styles.css
+
+tests/
+- hash.test.ts
+- merkle.test.ts
+- merkleProof.test.ts
+- byteMutation.test.ts
+
+Separá claramente el cálculo criptográfico, la lógica de simulación y la presentación visual.
+
+Usá TypeScript estricto, evitando `any` innecesarios.
+
+---
+
+### 12. Pruebas automatizadas
+
+Implementá pruebas con Vitest que comprueben:
+
+1. SHA-256 de datos conocidos.
+2. Construcción con una hoja.
+3. Construcción con dos hojas.
+4. Construcción con cuatro hojas.
+5. Construcción con tres y cinco hojas.
+6. Manejo de archivos vacíos.
+7. Manejo de datos duplicados.
+8. Conservación del orden de hojas.
+9. Cambio de raíz al modificar un byte.
+10. Restauración de la raíz original.
+11. Generación de Merkle Proof.
+12. Verificación correcta de Merkle Proof.
+13. Rechazo de pruebas modificadas.
+14. Identificación precisa de nodos afectados.
+
+Incluí pruebas con resultados esperados calculados de forma independiente para evitar validar el algoritmo únicamente contra sí mismo.
+
+---
+
+### 13. Documentación
+
+Generá un README.md que incluya:
+
+- Descripción del proyecto.
+- Objetivos.
+- Tecnologías utilizadas.
+- Requisitos de instalación.
+- Comandos para ejecutar el proyecto.
+- Explicación del algoritmo de Merkle.
+- Fórmulas matemáticas.
+- Arquitectura del sistema.
+- Ejemplos de uso.
+- Instrucciones para ejecutar las pruebas.
+- Limitaciones conocidas.
+
+La documentación debe ser apropiada para un proyecto académico de Matemática Aplicada.
+
+---
+
+### 14. Criterios de aceptación
+
+La aplicación se considerará terminada únicamente cuando:
+
+- Permita cargar múltiples archivos reales.
+- Calcule hashes SHA-256 correctamente.
+- Construya un Árbol de Merkle válido.
+- Represente el árbol mediante un grafo interactivo.
+- Muestre todos los niveles y conexiones.
+- Permita modificar un byte de forma controlada.
+- Detecte el cambio de integridad.
+- Anime la propagación del cambio hasta la raíz.
+- Compare las raíces original y modificada.
+- Muestre explicaciones matemáticas entendibles.
+- Genere y verifique pruebas de inclusión.
+- Maneje errores sin bloquear la aplicación.
+- Presente un diseño profesional y responsivo.
+- Incluya pruebas automatizadas.
+- Disponga de documentación completa.
+
+---
+
+### 15. Instrucciones finales de desarrollo
+
+Desarrollá la aplicación en etapas, priorizando primero la corrección matemática y después la visualización.
+
+Orden de implementación:
+
+**Etapa 1:** configuración de React, TypeScript y estructura del proyecto.
+
+**Etapa 2:** implementación y pruebas del motor matemático.
+
+**Etapa 3:** carga de archivos y construcción del árbol.
+
+**Etapa 4:** interfaz visual y grafo interactivo.
+
+**Etapa 5:** simulación de alteración de un byte.
+
+**Etapa 6:** animación de propagación de cambios.
+
+**Etapa 7:** explorador matemático y pruebas de inclusión.
+
+**Etapa 8:** pruebas finales, mejoras visuales y documentación.
+
+Si existe código previo de MerkleViz, inspeccionalo y reutilizá los componentes y funciones correctos antes de reemplazarlos.
+
+No utilices hashes inventados para representar cálculos reales.
+
+No reduzcas el proyecto a una demostración estática.
+
+Entregá código funcional, organizado y listo para ejecutar localmente con:
+
+npm install
+
+npm run dev
+
+Incluí también:
+
+npm test
+
+**Resultado esperado:** una aplicación web educativa, visualmente atractiva, matemáticamente rigurosa e interactiva que demuestre cómo los Árboles de Merkle permiten verificar la integridad de archivos y detectar la propagación de modificaciones mediante funciones hash criptográficas.
