@@ -5,6 +5,7 @@ import { FileList } from './components/FileList'
 import { IntegrityDashboard } from './components/IntegrityDashboard'
 import { MathExplorer } from './components/MathExplorer'
 import { MerkleTreeGraph } from './components/MerkleTreeGraph'
+import { RealFileVerification } from './components/RealFileVerification'
 import { SimulationControls, type SimulationFrame } from './components/SimulationControls'
 import { mutateByte } from './core/byteMutation'
 import { hashLeaf, toHex } from './core/hash'
@@ -40,6 +41,7 @@ export default function App() {
   const [affectedIds, setAffectedIds] = useState<Set<string>>(new Set())
   const [proofIds, setProofIds] = useState<Set<string>>(new Set())
   const [filesExpanded, setFilesExpanded] = useState(true)
+  const [verificationMode, setVerificationMode] = useState<'bit' | 'file' | null>(null)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -216,6 +218,24 @@ export default function App() {
   }, [selectedNodeId, currentTree])
   const names = useMemo(() => entries.map((entry) => entry.file.name), [entries])
   const setProofNodeIds = useCallback((ids: Set<string>) => setProofIds(ids), [])
+  const chooseMode = (mode: 'bit' | 'file') => {
+    setPlaying(false)
+    setVerificationMode(mode)
+  }
+  const filesPanel = (
+    <section className="panel files-panel">
+      <div className="panel-heading"><div><span className="eyebrow">CONJUNTO DE DATOS</span><h2>Archivos de entrada <span className="count-pill">{entries.length}</span></h2></div><div className="files-toolbar">{busy && <span className="processing-indicator"><span /> Procesando</span>}{entries.length > 0 && <button className="text-button" disabled={busy} onClick={handleClear}><Trash2 size={14} /> Limpiar</button>}<button className="icon-button collapse-button" aria-expanded={filesExpanded} aria-controls="files-panel-content" aria-label={filesExpanded ? 'Ocultar sección de archivos' : 'Mostrar sección de archivos'} title={filesExpanded ? 'Ocultar archivos' : 'Mostrar archivos'} onClick={() => setFilesExpanded((expanded) => !expanded)}>{filesExpanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}</button></div></div>
+      {filesExpanded ? (
+        <div id="files-panel-content" className="files-panel-content">
+          <FileUploader disabled={busy} onFiles={(files) => void handleFiles(files)} />
+          <FileList entries={entries} selectedId={selectedId} disabled={busy} onSelect={(id) => { setSelectedId(id); setByteIndex('0') }} onRemove={handleRemove} />
+          <div className="files-footer"><span>{entries.length === 0 ? 'El orden de carga define la posición de cada hoja.' : `${entries.length} ${entries.length === 1 ? 'archivo' : 'archivos'} · ${formatBytes(entries.reduce((sum, entry) => sum + entry.file.size, 0))} en total`}</span><span><Shield size={12} /> Máximo 100 MiB por archivo</span></div>
+        </div>
+      ) : (
+        <div className="files-collapsed-summary">{entries.length === 0 ? 'Sección de carga oculta.' : `${entries.length} ${entries.length === 1 ? 'archivo cargado' : 'archivos cargados'} · ${formatBytes(entries.reduce((sum, entry) => sum + entry.file.size, 0))}`}</div>
+      )}
+    </section>
+  )
   return (
     <div className="app-shell" data-theme={theme}>
       <header className="topbar">
@@ -234,21 +254,17 @@ export default function App() {
 
         {message && <div className={`notice notice-${message.type}`} role="status">{message.type === 'error' ? <CircleAlert size={17} /> : <Check size={17} />}<span>{message.text}</span><button className="notice-close" aria-label="Cerrar aviso" onClick={() => setMessage(null)}>×</button></div>}
 
-        <div className="dashboard-stack">
-          <div className="dashboard-top-grid">
-            <section className="panel files-panel">
-              <div className="panel-heading"><div><span className="eyebrow">CONJUNTO DE DATOS</span><h2>Archivos de entrada <span className="count-pill">{entries.length}</span></h2></div><div className="files-toolbar">{busy && <span className="processing-indicator"><span /> Procesando</span>}{entries.length > 0 && <button className="text-button" disabled={busy} onClick={handleClear}><Trash2 size={14} /> Limpiar</button>}<button className="icon-button collapse-button" aria-expanded={filesExpanded} aria-controls="files-panel-content" aria-label={filesExpanded ? 'Ocultar sección de archivos' : 'Mostrar sección de archivos'} title={filesExpanded ? 'Ocultar archivos' : 'Mostrar archivos'} onClick={() => setFilesExpanded((expanded) => !expanded)}>{filesExpanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}</button></div></div>
-              {filesExpanded ? (
-                <div id="files-panel-content" className="files-panel-content">
-                  <FileUploader disabled={busy} onFiles={(files) => void handleFiles(files)} />
-                  <FileList entries={entries} selectedId={selectedId} disabled={busy} onSelect={(id) => { setSelectedId(id); setByteIndex('0') }} onRemove={handleRemove} />
-                  <div className="files-footer"><span>{entries.length === 0 ? 'El orden de carga define la posición de cada hoja.' : `${entries.length} ${entries.length === 1 ? 'archivo' : 'archivos'} · ${formatBytes(entries.reduce((sum, entry) => sum + entry.file.size, 0))} en total`}</span><span><Shield size={12} /> Máximo 100 MiB por archivo</span></div>
-                </div>
-              ) : (
-                <div className="files-collapsed-summary">{entries.length === 0 ? 'Sección de carga oculta.' : `${entries.length} ${entries.length === 1 ? 'archivo cargado' : 'archivos cargados'} · ${formatBytes(entries.reduce((sum, entry) => sum + entry.file.size, 0))}`}</div>
-              )}
-            </section>
+        <section className="mode-selector" aria-labelledby="mode-selector-title">
+          <div><span className="eyebrow">ELEGÍ UNA EXPERIENCIA</span><h2 id="mode-selector-title">¿Cómo querés verificar la integridad?</h2></div>
+          <div className="mode-options">
+            <button className={`mode-option ${verificationMode === 'bit' ? 'mode-option-active' : ''}`} aria-pressed={verificationMode === 'bit'} onClick={() => chooseMode('bit')}><span className="mode-option-icon">01</span><span><strong>Simular un bit</strong><small>Invertí un bit y seguí el cambio paso a paso.</small></span></button>
+            <button className={`mode-option ${verificationMode === 'file' ? 'mode-option-active' : ''}`} aria-pressed={verificationMode === 'file'} onClick={() => chooseMode('file')}><span className="mode-option-icon"><Shield size={19} /></span><span><strong>Verificar un archivo</strong><small>Elegí una versión modificada y comparala con la referencia.</small></span></button>
+          </div>
+        </section>
 
+        {verificationMode === 'bit' && <div className="dashboard-stack">
+          <div className="dashboard-top-grid">
+            {filesPanel}
             <IntegrityDashboard tree={tree} currentTree={currentTree} changedCount={affectedIds.size} simulationReady={frames.length > 0} />
           </div>
 
@@ -274,9 +290,10 @@ export default function App() {
             />
             {affectedPath.length > 0 && <div className="mutation-result"><span>SIMULACIÓN ACTIVA</span><strong>{revealedIds.size} / {affectedPath.length} nodos propagados</strong><code>Hoja #{selectedLeafIndex + 1} → raíz</code></div>}
           </MerkleTreeGraph>
-        </div>
+        </div>}
 
-        <MathExplorer tree={tree} selectedLeafIndex={selectedLeafIndex} onProofNodes={setProofNodeIds} />
+        {verificationMode === 'file' && <RealFileVerification key={entries.map((entry) => entry.id).join('|')} entries={entries} tree={tree} selectedId={selectedId} onSelect={(id) => { setSelectedId(id); setByteIndex('0') }} filePanel={filesPanel} />}
+        {verificationMode === 'bit' && <MathExplorer tree={tree} selectedLeafIndex={selectedLeafIndex} onProofNodes={setProofNodeIds} />}
         <footer className="page-footer"><span><TreePine size={14} /> MerkleViz <i /> Matemática Aplicada</span><span>Los datos no salen de tu dispositivo</span></footer>
       </main>
     </div>

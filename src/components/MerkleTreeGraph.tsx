@@ -16,6 +16,8 @@ interface MerkleNodeData extends Record<string, unknown> {
 type MerkleFlowNode = Node<MerkleNodeData, 'merkle'>
 
 interface MerkleTreeGraphProps {
+  title?: string
+  description?: string
   tree: MerkleTree | null
   originalTree: MerkleTree | null
   selectedId: string | null
@@ -44,7 +46,7 @@ function MerkleNodeCard({ data }: { data: MerkleNodeData }) {
 
 const nodeTypes: NodeTypes = { merkle: MerkleNodeCard }
 
-export function MerkleTreeGraph({ tree, originalTree, selectedId, selectedNode, changedIds = new Set(), proofIds = new Set(), revealedIds = new Set(), fileNames, onSelect, children }: MerkleTreeGraphProps) {
+export function MerkleTreeGraph({ title = 'Árbol de Merkle', description = 'Seleccioná cualquier nodo para explorar su cálculo.', tree, originalTree, selectedId, selectedNode, changedIds = new Set(), proofIds = new Set(), revealedIds = new Set(), fileNames, onSelect, children }: MerkleTreeGraphProps) {
   const [flow, setFlow] = useState<ReactFlowInstance<MerkleFlowNode, Edge> | null>(null)
   const [showNodeDetails, setShowNodeDetails] = useState(true)
   const [showSimulation, setShowSimulation] = useState(true)
@@ -106,7 +108,7 @@ export function MerkleTreeGraph({ tree, originalTree, selectedId, selectedNode, 
   return (
     <section className="panel graph-panel">
       <div className="graph-heading">
-        <div><span className="eyebrow">ESTRUCTURA DEL CONJUNTO</span><h2>Árbol de Merkle</h2><p>Seleccioná cualquier nodo para explorar su cálculo.</p></div>
+        <div><span className="eyebrow">ESTRUCTURA DEL CONJUNTO</span><h2>{title}</h2><p>{description}</p></div>
         <div className="graph-actions">
           <button className="panel-toggle-button" aria-pressed={showNodeDetails} title={showNodeDetails ? 'Ocultar detalle del nodo' : 'Mostrar detalle del nodo'} onClick={() => setShowNodeDetails((visible) => !visible)}>{showNodeDetails ? <EyeOff size={14} /> : <Eye size={14} />}<span>Detalle</span></button>
           <button className="panel-toggle-button" aria-pressed={showSimulation} title={showSimulation ? 'Ocultar laboratorio' : 'Mostrar laboratorio'} onClick={() => setShowSimulation((visible) => !visible)}>{showSimulation ? <EyeOff size={14} /> : <Eye size={14} />}<span>Laboratorio</span></button>
