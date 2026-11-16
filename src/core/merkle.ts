@@ -27,7 +27,7 @@ export async function buildMerkleTree(leafHashes: readonly HashBytes[]): Promise
       const parentPosition = index / 2
       nextLevel.push({
         id: nodeId(levels.length, parentPosition),
-        kind: levels.length === 1 ? 'root' : 'internal',
+        kind: 'internal',
         level: levels.length,
         position: parentPosition,
         hash: await hashParent(left.hash, right.hash),

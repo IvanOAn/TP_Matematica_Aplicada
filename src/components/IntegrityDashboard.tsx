@@ -8,9 +8,10 @@ interface IntegrityDashboardProps {
   currentTree: MerkleTree | null
   changedCount: number
   simulationReady: boolean
+  hasComparison?: boolean
 }
 
-export function IntegrityDashboard({ tree, currentTree, changedCount, simulationReady }: IntegrityDashboardProps) {
+export function IntegrityDashboard({ tree, currentTree, changedCount, simulationReady, hasComparison = true }: IntegrityDashboardProps) {
   if (!tree || !currentTree) {
     return <section className="panel integrity-panel"><PanelHeading /><div className="integrity-empty">Cargá al menos un archivo para calcular la raíz de Merkle.</div></section>
   }
@@ -18,14 +19,14 @@ export function IntegrityDashboard({ tree, currentTree, changedCount, simulation
   return (
     <section className="panel integrity-panel">
       <PanelHeading />
-      <div className={`verification-banner ${verified ? 'verification-ok' : 'verification-failed'}`}>
-        <div className="verification-icon">{verified ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}</div>
-        <div><span>Estado de integridad</span><strong>{verified ? 'Contenido verificado' : 'Alteración detectada'}</strong></div>
-        <span className="verification-tag">{verified ? <><Check size={13} /> ÍNTEGRO</> : 'CAMBIÓ'}</span>
+      <div className={`verification-banner ${!hasComparison ? 'verification-pending' : verified ? 'verification-ok' : 'verification-failed'}`}>
+        <div className="verification-icon">{!hasComparison ? <Fingerprint size={20} /> : verified ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}</div>
+        <div><span>Estado de integridad</span><strong>{!hasComparison ? 'Esperando nueva versión' : verified ? 'Contenido verificado' : 'Alteración detectada'}</strong></div>
+        <span className="verification-tag">{!hasComparison ? 'PENDIENTE' : verified ? <><Check size={13} /> ÍNTEGRO</> : 'CAMBIÓ'}</span>
       </div>
       <div className="root-comparison">
         <div className="root-line"><span>Raíz de referencia</span><code>{toHex(tree.root.hash)}</code></div>
-        <div className="root-line"><span>Raíz actual</span><code className={!verified ? 'text-danger' : ''}>{toHex(currentTree.root.hash)}</code></div>
+        <div className="root-line"><span>Raíz actual</span><code className={!verified ? 'text-danger' : ''}>{hasComparison ? toHex(currentTree.root.hash) : '—'}</code></div>
       </div>
       <div className="integrity-stats">
         <Stat icon={<Layers3 size={15} />} value={String(tree.leafCount)} label="archivos" />
@@ -33,7 +34,7 @@ export function IntegrityDashboard({ tree, currentTree, changedCount, simulation
         <Stat icon={<Fingerprint size={15} />} value={String(tree.height)} label="altura" />
         <Stat icon={<ShieldAlert size={15} />} value={String(changedCount)} label="hashes modificados" alert={changedCount > 0} />
       </div>
-      <p className="integrity-footnote">{simulationReady ? 'La raíz de referencia se fijó al procesar el conjunto actual.' : 'La raíz inicial se usa como referencia durante esta sesión.'}</p>
+      <p className="integrity-footnote">{!hasComparison ? 'Elegí una nueva versión del archivo para compararla con la referencia.' : simulationReady ? 'La raíz de referencia se fijó al procesar el conjunto actual.' : 'La raíz inicial se usa como referencia durante esta sesión.'}</p>
     </section>
   )
 }
